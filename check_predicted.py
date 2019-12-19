@@ -1,4 +1,4 @@
-#!/usr/bin/env /usr/bin/python
+#!/usr/bin/env python
 
 # check_predicted.py
 # check_predicted.py uses rrdtool's prediction functions to detect unusual behavior.
@@ -11,7 +11,7 @@
 
 
 import sys
-sys.path.append('/usr/local/lib/python2.7/site-packages/')
+import os
 import re
 import argparse
 import subprocess
@@ -135,12 +135,14 @@ class MetricPredict(nagiosplugin.Resource):
         
 @nagiosplugin.guarded
 def main():
+    # Come up with a decent default perfdata path that accounts for OMD
+    perfdata_path = "{}/var/pnp4nagios/perfdata".format(os.environ.get('OMD_ROOT', ''))
     # Setup argparse to parse the command line.
     cmdParser = argparse.ArgumentParser(description='check_predicted.py options')
     cmdParser.add_argument('-H ', '--host', dest='host', action='store',
                            help='invID to query')
     cmdParser.add_argument('--path', dest='path', action='store',
-                           default='/opt/omd/sites/sysmon/var/pnp4nagios/perfdata',
+                           default=perfdata_path,
                            help='Path to perfdata directory')
     cmdParser.add_argument('--dsname', dest='ds_name', action='store',
                            default='out', help='datastore(s) to query')
@@ -164,7 +166,7 @@ def main():
     
     # Initialize the rrd query
     # I know start_time is a kludge. Will fix.
-    predict_query = rrd_query.RRDQuery(invID=args.host, perfdata_path=args.perfdata_path, out_file='/tmp/{}'.format(args.host), start_time='end-6w', end_time=args.sample_time, debug=args.debug)
+    predict_query = rrd_query.RRDQuery(invID=args.host, perfdata_path=args.path, out_file='/tmp/{}'.format(args.host), start_time='end-6w', end_time=args.sample_time, debug=args.debug)
     
     # Initialize the nagios plugin Check object
     check = nagiosplugin.Check(MetricPredict(predict_query,
