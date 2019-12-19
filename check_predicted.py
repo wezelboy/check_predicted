@@ -144,6 +144,8 @@ def main():
     cmdParser.add_argument('--path', dest='path', action='store',
                            default=perfdata_path,
                            help='Path to perfdata directory')
+    cmdParser.add_argument('--servicename', dest='service_name', action='store',
+                           default='Interface_1', help='service to query')
     cmdParser.add_argument('--dsname', dest='ds_name', action='store',
                            default='out', help='datastore(s) to query')
     cmdParser.add_argument('-w', '--warn', dest='warn_coeff', action='store',
@@ -166,7 +168,12 @@ def main():
     
     # Initialize the rrd query
     # I know start_time is a kludge. Will fix.
-    predict_query = rrd_query.RRDQuery(invID=args.host, perfdata_path=args.path, out_file='/tmp/{}'.format(args.host), start_time='end-6w', end_time=args.sample_time, debug=args.debug)
+    predict_query = rrd_query.RRDQuery(invID=args.host,
+                                       perfdata_path=args.path,
+                                       service_name=args.service_name,
+                                       out_file='/tmp/{}'.format(args.host),
+                                       start_time='end-6w',
+                                       end_time=args.sample_time, debug=args.debug)
     
     # Initialize the nagios plugin Check object
     check = nagiosplugin.Check(MetricPredict(predict_query,

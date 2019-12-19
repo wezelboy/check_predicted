@@ -1,4 +1,4 @@
-#!/usr/bin/env /usr/local/bin/python2.7
+#!/usr/bin/env python
 
 # rrd_query.py - Put together complex rrd queries
 # Written by Patrick Scott Gavin 2013
@@ -10,7 +10,6 @@
 # I put this together because I was having problems getting the python rrd module working
 
 import sys
-sys.path.append('/usr/local/lib/python2.7/site-packages/')
 import rrdtool
 import xml.etree.ElementTree as ET
 import re
@@ -70,9 +69,9 @@ class RRDQuery:
     def __init__(self,
                  invID,                                             # Inventory ID of host we are querying
                  perfdata_path='/usr/local/pnp4nagios/var/perfdata',  # Path to the pnp4nagios data
-                 service_name='Interface_Traffic',                  # Name of the service that is being queried
+                 service_name='Interface 1',                  # Name of the service that is being queried
                  graph_width=12096,                                 # Width of the graph (in steps)
-                 graph_step=300,                                    # Default time of each graph step (in seconds)
+                 graph_step=60,                                    # Default time of each graph step (in seconds)
                  out_file='foo',
                  start_time='end-6w',                               # Actual start time to graph
                  end_time='now',                                    # Actual end time to graph
