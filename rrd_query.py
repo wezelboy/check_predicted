@@ -67,14 +67,14 @@ class RRDQuery:
         return return_dict
     
     def __init__(self,
-                 invID,                                             # Inventory ID of host we are querying
-                 perfdata_path='/usr/local/pnp4nagios/var/perfdata',  # Path to the pnp4nagios data
-                 service_name='Interface 1',                  # Name of the service that is being queried
-                 graph_width=12096,                                 # Width of the graph (in steps)
-                 graph_step=60,                                    # Default time of each graph step (in seconds)
+                 invID,                                                             # Inventory ID of host we are querying
+                 perfdata_path='/opt/omd/sites/sysmon/var/pnp4nagios/perfdata',     # Path to the pnp4nagios data
+                 service_name='Interface 1',                                        # Name of the service that is being queried
+                 graph_width=12096,                                                 # Width of the graph (in steps)
+                 graph_step=60,                                                     # Default time of each graph step (in seconds)
                  out_file='foo',
-                 start_time='end-6w',                               # Actual start time to graph
-                 end_time='now',                                    # Actual end time to graph
+                 start_time='end-6w',                                               # Actual start time to graph
+                 end_time='now',                                                    # Actual end time to graph
                  print_format='%6.2lf',
                  debug=0,
                  ):                                   
