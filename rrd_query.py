@@ -34,35 +34,42 @@ class RRDQuery:
     command_list -  A list of rrd commands that make up the query
     '''
     
-    def count_datastores(self):
+#    def count_datastores(self):
+#        '''
+#        ds_count takes an info dictionary (created by rrdtool.info) and
+#        returns the number of datastores in the rrd file.
+#        '''
+#
+#        index = 1
+#
+#        while "ds[{}].type".format(index) in self.rrd_info.keys():
+#            index += 1
+#
+#        return index
+
+    def load_XML(self):
         '''
-        ds_count takes an info dictionary (created by rrdtool.info) and
-        returns the number of datastores in the rrd file.
+        load_XML loads the service XML file and returns the root node of the tree.
         '''
         
-        index = 1
-        
-        while "ds[{}].type".format(index) in self.rrd_info.keys():
-            index += 1
-            
-        return index
+        tree = ET.parse(self.xml_path)
+        return tree.getroot()
     
     def build_label_dict(self):
         '''
         buildDict will create a dict that maps the datastore value to the name or label
-        using the xml file that pnp4nagios automatically creates.
+        using the xml file that pnp4nagios automatically creates. It now also extracts the
+        rrdfile as well, since check_mk likes to break up metrics into seperate files.
         '''
         
         # Initialize the dictionary that will be returned
         return_dict = {}
         
-        tree = ET.parse(self.xml_path)
-        root = tree.getroot()
-        
-        for datasource in root.findall('DATASOURCE'):
+        for datasource in self.service_meta.findall('DATASOURCE'):
             key = datasource.find('DS').text
-            value = datasource.find('NAME').text
-            return_dict[key] = value           
+            name = datasource.find('NAME').text
+            path = datasource.find('RRDFILE').text
+            return_dict[key] = (name, path)
             
         return return_dict
     
@@ -83,9 +90,10 @@ class RRDQuery:
         The rest of the rrdquery is put together using various commands, and then the actual query is made with the query command.
         '''
         self.debug          = debug
-        self.rrd_path       = '{}/{}/{}.rrd'.format(perfdata_path, invID, service_name)
+#        self.rrd_path       = '{}/{}/{}.rrd'.format(perfdata_path, invID, service_name)
         self.xml_path       = '{}/{}/{}.xml'.format(perfdata_path, invID, service_name)
-        self.rrd_info       = rrdtool.info(self.rrd_path)
+#        self.rrd_info       = rrdtool.info(self.rrd_path)
+        self.service_meta   = self.load_XML()
         self.label_dict     = self.build_label_dict()
         self.ds_count       = len(self.label_dict) + 1
         self.command_list   = ['rrdtool',
@@ -103,9 +111,9 @@ class RRDQuery:
         
         
         if self.debug:
-            sys.stderr.write('rrd info:\n')
-            for item in self.rrd_info:
-                sys.stderr.write('{}\n'.format(str(item)))
+#            sys.stderr.write('rrd info:\n')
+#            for item in self.rrd_info:
+#                sys.stderr.write('{}\n'.format(str(item)))
             sys.stderr.write('ds count = {}\n'.format(self.ds_count))
             sys.stderr.write('label dict:\n')
             sys.stderr.write('{}\n'.format(str(self.label_dict)))
@@ -120,22 +128,23 @@ class RRDQuery:
         return_tokens   = []
         
         # Define a regex to match against the label
-        if(name):
-            name_search = re.compile(r'{}'.format(name))
-        else:
-            name_search = re.compile(r'.*')
-            
+#        if(name):
+#            name_search = re.compile(r'{}'.format(name))
+#        else:
+#            name_search = re.compile(r'.*')
+
         if self.debug:
             sys.stderr.write('{}\n'.format(name))
             
         for index in range(1, self.ds_count):
+            (metric_name, path) = self.label_dict[str(index)]
             if self.debug:
-                sys.stderr.write('{}\n'.format(self.label_dict[str(index)]))
+                sys.stderr.write('{}{}\n'.format(metric_name, path))
                 
             # if (name_search.search(self.label_dict[str(index)])):
-            if name in self.label_dict[str(index)]:
+            if name in metric_name:
                 ds_name = 'ds{}{}'.format(str(index), consol_funct)
-                cmd_str = 'DEF:{2}={0}:{1}:{3}'.format(self.rrd_path, str(index), ds_name, cf_dict[consol_funct])
+                cmd_str = 'DEF:{2}={0}:{1}:{3}'.format(path, str(index), ds_name, cf_dict[consol_funct])
                 self.command_list.append(cmd_str)
                 return_tokens.append(ds_name)
                 if self.debug:
