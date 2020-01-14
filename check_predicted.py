@@ -65,12 +65,12 @@ class MetricPredict(nagiosplugin.Resource):
         else:
             ds = datasets.pop()
         
-        # Define the prediction rrd stuff  (self, cdef, step=604800, step_count=-5, window=1800, sigma_coeff=1):
+        # Define the prediction rrd stuff  (self, cdef, step=604800, step_count=-5, window=1800):
         predict_tokens = self.rrd_query.define_prediction(cdef=ds,
                                                           step=self.interval,
                                                           step_count=self.count,
                                                           window=self.window,
-                                                          sigma_coeff=self.sigma_coeff)
+                                                          )
         
         # Define an moving window average to smooth out the current rate.
         # It is this average that we will compare to the predicted. That way there will be less chance
@@ -120,7 +120,7 @@ class MetricPredict(nagiosplugin.Resource):
                     predicted = float(split_line[1])
                 else:
                     if 'sigma' in match.group(0):
-                        sigma = float(split_line[1]) # * float(self.sigma_coeff)
+                        sigma = float(split_line[1])
             else:
                 measured = float(split_line[1])
         
