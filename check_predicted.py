@@ -4,6 +4,7 @@
 # check_predicted.py uses rrdtool's prediction functions to detect unusual behavior.
 # It is primarily to be used for interface traffic, but hopefully it will find use in other data sets.
 # Originally written by Patrick Gavin. March 2013
+# Retooled for OMD/check-mk 2020
 #
 # check_predicted utilizes the google nagiosplugin class and also assumes an OMD environment.
 # The --path argument can be used to point to a different rrd file location if necessary.
@@ -56,52 +57,47 @@ class MetricPredict(nagiosplugin.Resource):
         so I built my own rrd_query mechanism. It's ugly but gets the job done.
         '''
         
-        # Define rrd datasets that match ds_match
-        datasets = self.rrd_query.define_dataset(self.ds_match)
+        for metric in self.rrd_query.get_metric_labels():
         
-        # If more than 1 dataset is defined, turn it into an aggregate
-        if len(datasets) > 1:
-            ds = self.rrd_query.define_aggregate('ds_aggr_out', datasets)
-        else:
-            ds = datasets.pop()
+            # Define rrd dataset for the metric
+            ds = self.rrd_query.define_dataset(self.ds_match)
         
-        # Define the prediction rrd stuff  (self, cdef, step=604800, step_count=-5, window=1800):
-        predict_tokens = self.rrd_query.define_prediction(cdef=ds,
-                                                          step=self.interval,
-                                                          step_count=self.count,
-                                                          window=self.window,
-                                                          )
-        
-        # Define an moving window average to smooth out the current rate.
-        # It is this average that we will compare to the predicted. That way there will be less chance
-        # of a false positive caused by a sudden drop/glitch
-        # We'll use rrd TRENDNAN for this purpose
-        
-        rdef_str = '{},{},TRENDNAN'.format(ds, (self.window)/2)
-        ds_smooth = '{}_smooth'.format(ds)
-        self.rrd_query.define_cdef(ds_smooth, rdef_str)
-        
-        # Add this to the working tokens
-        predict_tokens.append(ds_smooth)
-        #predict_tokens.append(ds)
-        
-        # Create a current vdef and print statement for each cdef defined by the prediction definition
-        # and the smoothed average
-        # Build a regexp dict to help parse the rrd output when it is done.
-        vdef_tokens = []
-        output_parser = re.compile(r'pred$|sigma$')
-        
-        for token in predict_tokens:
-            vdef_name       = 'curr_{}'.format(token)
-            rdef_str        = '{},LAST'.format(token)
-            vdef_tokens.append(self.rrd_query.define_vdef(vdef_name, rdef_str))
+            # Define the prediction rrd stuff  (self, cdef, step=604800, step_count=-5, window=1800):
+            predict_tokens = self.rrd_query.define_prediction(cdef=ds,
+                                                              step=self.interval,
+                                                              step_count=self.count,
+                                                              window=self.window,
+                                                              )
             
-        if(self.debug):
-            for line in vdef_tokens:
-                sys.stderr.write('{}\n'.format(line))
-        
-        for token in vdef_tokens:
-            self.rrd_query.define_print(token)
+            # Define an moving window average to smooth out the current rate.
+            # It is this average that we will compare to the predicted. That way there will be less chance
+            # of a false positive caused by a sudden drop/glitch
+            # We'll use rrd TRENDNAN for this purpose
+            
+            rdef_str = '{},{},TRENDNAN'.format(ds, (self.window)/2)
+            ds_smooth = '{}_smooth'.format(ds)
+            self.rrd_query.define_cdef(ds_smooth, rdef_str)
+            
+            # Add this to the working tokens
+            predict_tokens.append(ds_smooth)
+            #predict_tokens.append(ds)
+            
+            # Create a current vdef and print statement for each cdef defined by the prediction definition
+            # and the smoothed average
+            # Build a regexp dict to help parse the rrd output when it is done.
+            vdef_tokens = []
+            
+            for token in predict_tokens:
+                vdef_name       = 'curr_{}'.format(token)
+                rdef_str        = '{},LAST'.format(token)
+                vdef_tokens.append(self.rrd_query.define_vdef(vdef_name, rdef_str))
+            
+            if(self.debug):
+                for line in vdef_tokens:
+                    sys.stderr.write('{}\n'.format(line))
+            
+            for token in vdef_tokens:
+                self.rrd_query.define_print(token)
                        
         # Run the query
         rrd_output = self.rrd_query.run_query()
@@ -111,7 +107,7 @@ class MetricPredict(nagiosplugin.Resource):
                 sys.stderr.write('{}\n'.format(line))
         
         # Parse the output and map it to metrics
-        
+        output_parser = re.compile(r'pred$|sigma$')
         for line in rrd_output:
             split_line = line.split(' = ')
             match = output_parser.search(split_line[0])
@@ -147,7 +143,7 @@ def main():
     cmdParser.add_argument('--servicename', dest='service_name', action='store',
                            default='Interface_1', help='service to query')
     cmdParser.add_argument('--dsname', dest='ds_name', action='store',
-                           default='out', help='datastore(s) to query')
+                           default='out', help='specific service metric to query')
     cmdParser.add_argument('-w', '--warn', dest='warn_coeff', action='store',
                            default=1, help='sigma coefficient variation before warn - higher is less sensitive')
     cmdParser.add_argument('-c', '--crit', dest='crit_coeff', action='store',

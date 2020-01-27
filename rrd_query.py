@@ -2,8 +2,9 @@
 
 # rrd_query.py - Put together complex rrd queries
 # Written by Patrick Scott Gavin 2013
+# Retooled for OMD/check-mk 2020
 
-# This code was put together for a very specific nagios installation
+# This code was originally put together for a very specific nagios installation
 # It is not meant for general release and I cannot guarantee or support
 # it.
 
@@ -66,10 +67,10 @@ class RRDQuery:
         return_dict = {}
         
         for datasource in self.service_meta.findall('DATASOURCE'):
-            key = datasource.find('DS').text
+            ds_num = datasource.find('DS').text
             name = datasource.find('NAME').text
             path = datasource.find('RRDFILE').text
-            return_dict[key] = (name, path)
+            return_dict[name] = (path, ds_num)
             
         return return_dict
     
@@ -90,12 +91,11 @@ class RRDQuery:
         The rest of the rrdquery is put together using various commands, and then the actual query is made with the query command.
         '''
         self.debug          = debug
-#        self.rrd_path       = '{}/{}/{}.rrd'.format(perfdata_path, invID, service_name)
         self.xml_path       = '{}/{}/{}.xml'.format(perfdata_path, invID, service_name)
-#        self.rrd_info       = rrdtool.info(self.rrd_path)
         self.service_meta   = self.load_XML()
         self.label_dict     = self.build_label_dict()
         self.ds_count       = len(self.label_dict) + 1
+        # command_list is the bread and butter of this. It has all of the rrd commands that will finally be run.
         self.command_list   = ['rrdtool',
                                'graph',
                                '--width',
@@ -111,46 +111,36 @@ class RRDQuery:
         
         
         if self.debug:
-#            sys.stderr.write('rrd info:\n')
-#            for item in self.rrd_info:
-#                sys.stderr.write('{}\n'.format(str(item)))
             sys.stderr.write('ds count = {}\n'.format(self.ds_count))
             sys.stderr.write('label dict:\n')
             sys.stderr.write('{}\n'.format(str(self.label_dict)))
+
+
+    def get_metric_labels(self):
+        '''
+        get_metric_lables returns a list of all of the metrics associated with a service.
+        '''
+        return self.label_dict.keys()
         
-    def define_dataset(self, name=None, consol_funct='avg'):
+    def define_dataset(self, metric_name=None, consol_funct='avg'):
         '''
         define_dataset will generate rrd DEF commands and add them to the rrd query command list.
         If name is specified, it will only define datasets whose label (in label_dict) matches name.
         The function will return a list of tokens that have been defined as datasets.
         '''
         
-        return_tokens   = []
+        (path, ds_num) = self.label_dict[metric_name]
         
-        # Define a regex to match against the label
-#        if(name):
-#            name_search = re.compile(r'{}'.format(name))
-#        else:
-#            name_search = re.compile(r'.*')
-
         if self.debug:
-            sys.stderr.write('{}\n'.format(name))
-            
-        for index in range(1, self.ds_count):
-            (metric_name, path) = self.label_dict[str(index)]
-            if self.debug:
-                sys.stderr.write('{}{}\n'.format(metric_name, path))
+            sys.stderr.write('Metric {} in {}\n'.format(metric_name, path))
+        
+        ds_name = 'ds{}{}'.format(metric_name, consol_funct)
+        cmd_str = 'DEF:{2}={0}:{1}:{3}'.format(path, ds_num, ds_name, cf_dict[consol_funct])
+        self.command_list.append(cmd_str)
+        if self.debug:
+            sys.stderr.write('{}\n'.format(cmd_str))
                 
-            # if (name_search.search(self.label_dict[str(index)])):
-            if name in metric_name:
-                ds_name = 'ds{}{}'.format(str(index), consol_funct)
-                cmd_str = 'DEF:{2}={0}:{1}:{3}'.format(path, str(index), ds_name, cf_dict[consol_funct])
-                self.command_list.append(cmd_str)
-                return_tokens.append(ds_name)
-                if self.debug:
-                    sys.stderr.write('{}\n'.format(cmd_str))
-                
-        return return_tokens
+        return ds_name
                 
     def define_vdef(self, name, rdef):
         '''
