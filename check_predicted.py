@@ -169,19 +169,30 @@ def main():
                                        out_file='/tmp/{}'.format(args.host),
                                        start_time='end-6w',
                                        end_time=args.sample_time, debug=args.debug)
-                                       
     
+    # Initialize the resource
+    predict_resource = MetricPredict(predict_query,
+                                    ds_match=args.ds_name,
+                                    warn_coeff=args.warn_coeff,
+                                    crit_coeff=args.crit_coeff,
+                                    sample_time=args.sample_time,
+                                    count=args.sample_count,
+                                    interval=args.sample_interval,
+                                    window=args.sample_window,
+                                    debug=args.debug)
     
     # Initialize the nagios plugin Check object
-    check = nagiosplugin.Check(MetricPredict(predict_query,
-                                              ds_match=args.ds_name,
-                                              warn_coeff=args.warn_coeff,
-                                              crit_coeff=args.crit_coeff,
-                                              sample_time=args.sample_time,
-                                              count=args.sample_count,
-                                              interval=args.sample_interval,
-                                              window=args.sample_window,
-                                              debug=args.debug),
+    check = nagiosplugin.Check(predict_resource)
+        
+#    check = nagiosplugin.Check(MetricPredict(predict_query,
+#                                              ds_match=args.ds_name,
+#                                              warn_coeff=args.warn_coeff,
+#                                              crit_coeff=args.crit_coeff,
+#                                              sample_time=args.sample_time,
+#                                              count=args.sample_count,
+#                                              interval=args.sample_interval,
+#                                              window=args.sample_window,
+#                                              debug=args.debug),
 #                               nagiosplugin.ScalarContext('difference', '0', ':',
 #                                                          fmt_metric='Measured value is {value} below predicted - sigma'),
 #                               nagiosplugin.ScalarContext('measured', None, None,
@@ -193,7 +204,7 @@ def main():
                               )
                               
     for metric in predict_query.get_metric_labels():
-        for submetric in check.submetric_list:
+        for submetric in predict_resource.submetric_list:
             new_context = nagiosplugin.ScalarContext(metric + submetric, None, None)
             check.add(new_context)
     
