@@ -106,28 +106,35 @@ class MetricPredict(nagiosplugin.Resource):
             for line in rrd_output:
                 sys.stderr.write('{}\n'.format(line))
         
+        rrd_output_map = {}
+        
         # Parse the output and map it to metrics
-        output_parser = re.compile(r'pred$|sigma$')
+        output_parser = re.compile(r'^curr_ds(.*) = (.*)')
         for line in rrd_output:
-            split_line = line.split(' = ')
-            match = output_parser.search(split_line[0])
+            match = output_parser.search(line)
             if match:
-                if 'pred' in match.group(0):
-                    predicted = float(split_line[1])
-                else:
-                    if 'sigma' in match.group(0):
-                        sigma = float(split_line[1])
-            else:
-                measured = float(split_line[1])
+                rrd_output_map[match.group(0)] = float(match.group(1))
         
-        # Figure out the difference
-        difference = abs(measured - predicted)
-        
-        # Return the nagios plugin metrics
-        return [nagiosplugin.Metric('difference', difference, min=0),
-                nagiosplugin.Metric('measured', measured),
-                nagiosplugin.Metric('predicted', predicted),
-                nagiosplugin.Metric('sigma', sigma, min=0)]
+#                if 'pred' in match.group(1):
+#                    predicted = float(split_line[1])
+#                else:
+#                    if 'sigma' in match.group(1):
+#                        sigma = float(split_line[1])
+#            else:
+#                measured = float(split_line[1])
+
+#            # Figure out the difference
+#            difference = abs(measured - predicted)
+
+#        return_list = []
+        submetric_list = ["", "_pred", "_sigma"]
+        for metric in self.rrd_query.get_metric_labels():
+            for submetric in submetric_list:
+                yield nagiosplugin.Metric(metric + submetric, rrd_output_map[metric + submetric])
+            
+            # calculate difference
+            difference = abs(rrd_output_map[metric] - rrd_output_map[metric + "_pred"])
+            yield nagiosplugin.Metric(metric + "_diff", difference)
         
 @nagiosplugin.guarded
 def main():
