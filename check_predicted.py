@@ -124,7 +124,8 @@ class MetricPredict(nagiosplugin.Resource):
             for submetric in self.submetric_list:
                 yield nagiosplugin.Metric(metric + submetric, rrd_output_map[metric + submetric])
             
-            # calculate difference
+            # calculate difference- I should probably put this in the rrd query layer to make the code
+            # cleaner here.
             difference = abs(rrd_output_map[metric + "avg_smooth"] - rrd_output_map[metric + "avg_pred"])
             yield nagiosplugin.Metric(metric + "avg_diff", difference)
         
@@ -205,8 +206,9 @@ def main():
 
     for metric in predict_query.get_metric_labels():
         for submetric in predict_resource.submetric_list:
-            new_context = nagiosplugin.ScalarContext(metric + submetric, None, None)
-            check.add(new_context)
+            check.add(nagiosplugin.ScalarContext(metric + submetric, None, None))
+        check.add(nagiosplugin.ScalarContext(metric + "avg_diff", None, None))
+
     
     check.main(args.debug, args.timeout)
     
