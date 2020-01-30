@@ -125,7 +125,7 @@ class MetricPredict(nagiosplugin.Resource):
                 yield nagiosplugin.Metric(metric + submetric, rrd_output_map[metric + submetric])
             
             # calculate difference
-            difference = abs(rrd_output_map[metric] - rrd_output_map[metric + "avg_pred"])
+            difference = abs(rrd_output_map[metric + "avg_smooth"] - rrd_output_map[metric + "avg_pred"])
             yield nagiosplugin.Metric(metric + "avg_diff", difference)
         
 @nagiosplugin.guarded
