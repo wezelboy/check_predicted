@@ -201,8 +201,8 @@ def main():
 #                                                          fmt_metric='{value} predicted bps'),
 #                               nagiosplugin.ScalarContext('sigma', None, None,
 #                                                          fmt_metric='{value} sigma uncertainty')
-                              )
-                              
+#                              )
+
     for metric in predict_query.get_metric_labels():
         for submetric in predict_resource.submetric_list:
             new_context = nagiosplugin.ScalarContext(metric + submetric, None, None)
