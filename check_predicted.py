@@ -47,6 +47,7 @@ class MetricPredict(nagiosplugin.Resource):
         self.interval       = interval
         self.window         = window
         self.debug          = debug
+        self.submetric_list = ["avg_smooth", "avg_pred", "avg_sigma"]
         
     
     def probe(self):
@@ -117,23 +118,10 @@ class MetricPredict(nagiosplugin.Resource):
         
         if(self.debug):
             for metric in rrd_output_map.keys():
-                sys.stderr.write('{}{}\n'.format(metric, rrd_output_map[metric]))
+                sys.stderr.write('{} = {}\n'.format(metric, rrd_output_map[metric]))
         
-#                if 'pred' in match.group(1):
-#                    predicted = float(split_line[1])
-#                else:
-#                    if 'sigma' in match.group(1):
-#                        sigma = float(split_line[1])
-#            else:
-#                measured = float(split_line[1])
-
-#            # Figure out the difference
-#            difference = abs(measured - predicted)
-
-#        return_list = []
-        submetric_list = ["avg_smooth", "avg_pred", "avg_sigma"]
         for metric in self.rrd_query.get_metric_labels():
-            for submetric in submetric_list:
+            for submetric in self.submetric_list:
                 yield nagiosplugin.Metric(metric + submetric, rrd_output_map[metric + submetric])
             
             # calculate difference
@@ -181,6 +169,8 @@ def main():
                                        out_file='/tmp/{}'.format(args.host),
                                        start_time='end-6w',
                                        end_time=args.sample_time, debug=args.debug)
+                                       
+    
     
     # Initialize the nagios plugin Check object
     check = nagiosplugin.Check(MetricPredict(predict_query,
@@ -201,6 +191,12 @@ def main():
 #                               nagiosplugin.ScalarContext('sigma', None, None,
 #                                                          fmt_metric='{value} sigma uncertainty')
                               )
+                              
+    for metric in predict_query.get_metric_labels():
+        for submetric in check.submetric_list:
+            new_context = nagiosplugin.ScalarContext(metric + submetric, None, None)
+            check.add(new_context)
+    
     check.main(args.debug, args.timeout)
     
 if __name__ == '__main__':
