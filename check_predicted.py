@@ -111,9 +111,9 @@ class MetricPredict(nagiosplugin.Resource):
         # Parse the output and map it to metrics
         output_parser = re.compile(r'^curr_ds(.*) = (.*)')
         for line in rrd_output:
-            match = output_parser.search(line)
+            match = output_parser.match(line)
             if match:
-                rrd_output_map[match.group(0)] = float(match.group(1))
+                rrd_output_map[match.group(1)] = float(match.group(2))
         
 #                if 'pred' in match.group(1):
 #                    predicted = float(split_line[1])
