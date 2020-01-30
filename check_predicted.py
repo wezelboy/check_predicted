@@ -127,7 +127,7 @@ class MetricPredict(nagiosplugin.Resource):
 #            difference = abs(measured - predicted)
 
 #        return_list = []
-        submetric_list = ["", "_pred", "_sigma"]
+        submetric_list = ["_smooth", "_pred", "_sigma"]
         for metric in self.rrd_query.get_metric_labels():
             for submetric in submetric_list:
                 yield nagiosplugin.Metric(metric + submetric, rrd_output_map[metric + submetric])
