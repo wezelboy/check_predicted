@@ -115,6 +115,10 @@ class MetricPredict(nagiosplugin.Resource):
             if match:
                 rrd_output_map[match.group(1)] = float(match.group(2))
         
+        if(self.debug):
+            for metric in rrd_output_map.keys():
+                sys.stderr.write('{}{}\n'.format(metric, rrd_output_map[metric]))
+        
 #                if 'pred' in match.group(1):
 #                    predicted = float(split_line[1])
 #                else:
