@@ -192,14 +192,14 @@ def main():
                                               interval=args.sample_interval,
                                               window=args.sample_window,
                                               debug=args.debug),
-                               nagiosplugin.ScalarContext('difference', '0', ':',
-                                                          fmt_metric='Measured value is {value} below predicted - sigma'),
-                               nagiosplugin.ScalarContext('measured', None, None,
-                                                          fmt_metric='{value} measured bps'),
-                               nagiosplugin.ScalarContext('predicted', None, None,
-                                                          fmt_metric='{value} predicted bps'),
-                               nagiosplugin.ScalarContext('sigma', None, None,
-                                                          fmt_metric='{value} sigma uncertainty')
+#                               nagiosplugin.ScalarContext('difference', '0', ':',
+#                                                          fmt_metric='Measured value is {value} below predicted - sigma'),
+#                               nagiosplugin.ScalarContext('measured', None, None,
+#                                                          fmt_metric='{value} measured bps'),
+#                               nagiosplugin.ScalarContext('predicted', None, None,
+#                                                          fmt_metric='{value} predicted bps'),
+#                               nagiosplugin.ScalarContext('sigma', None, None,
+#                                                          fmt_metric='{value} sigma uncertainty')
                               )
     check.main(args.debug, args.timeout)
     
