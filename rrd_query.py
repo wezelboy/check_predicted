@@ -5,8 +5,7 @@
 # Retooled for OMD/check-mk 2020
 
 # This code was originally put together for a very specific nagios installation
-# It is not meant for general release and I cannot guarantee or support
-# it.
+# It is not meant for general release and I cannot guarantee or support it.
 
 # I put this together because I was having problems getting the python rrd module working
 
@@ -34,19 +33,6 @@ class RRDQuery:
     end_time -      The end time for the rrd query
     command_list -  A list of rrd commands that make up the query
     '''
-    
-#    def count_datastores(self):
-#        '''
-#        ds_count takes an info dictionary (created by rrdtool.info) and
-#        returns the number of datastores in the rrd file.
-#        '''
-#
-#        index = 1
-#
-#        while "ds[{}].type".format(index) in self.rrd_info.keys():
-#            index += 1
-#
-#        return index
 
     def load_XML(self):
         '''
@@ -157,7 +143,7 @@ class RRDQuery:
     
     def define_cdef(self, name, rdef):
         '''
-        define_vdef will generate an rrd VDEF command and add it to the query command list.
+        define_cdef will generate an rrd VDEF command and add it to the query command list.
         '''
         
         cmd_str = 'CDEF:{}={}'.format(name, rdef)

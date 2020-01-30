@@ -10,6 +10,9 @@
 # The --path argument can be used to point to a different rrd file location if necessary.
 # I'm currently in the process of reworking it to run in a check_mk/OMD environment.
 
+# Right now I have the check running in my OMD/check_mk environment. It only returns metrics.
+# It doesn't actually trigger on anomalies in its current state.
+
 
 import sys
 import os
@@ -81,11 +84,9 @@ class MetricPredict(nagiosplugin.Resource):
             
             # Add this to the working tokens
             predict_tokens.append(ds_smooth)
-            #predict_tokens.append(ds)
             
             # Create a current vdef and print statement for each cdef defined by the prediction definition
-            # and the smoothed average
-            # Build a regexp dict to help parse the rrd output when it is done.
+            # and the smoothed average (and any difference or sigma coeff calculations)
             vdef_tokens = []
             
             for token in predict_tokens:
@@ -132,7 +133,10 @@ class MetricPredict(nagiosplugin.Resource):
 @nagiosplugin.guarded
 def main():
     # Come up with a decent default perfdata path that accounts for OMD
-    perfdata_path = "{}/var/pnp4nagios/perfdata".format(os.environ.get('OMD_ROOT', ''))
+    if os.environ.get('OMD_ROOT', ''):
+       perfdata_path = "{}/var/pnp4nagios/perfdata".format(os.environ.get('OMD_ROOT', ''))
+    else:
+       perfdata_path = "/usr/local/pnp4nagios/perfdata"
     # Setup argparse to parse the command line.
     cmdParser = argparse.ArgumentParser(description='check_predicted.py options')
     cmdParser.add_argument('-H ', '--host', dest='host', action='store',
@@ -184,26 +188,8 @@ def main():
     
     # Initialize the nagios plugin Check object
     check = nagiosplugin.Check(predict_resource)
-        
-#    check = nagiosplugin.Check(MetricPredict(predict_query,
-#                                              ds_match=args.ds_name,
-#                                              warn_coeff=args.warn_coeff,
-#                                              crit_coeff=args.crit_coeff,
-#                                              sample_time=args.sample_time,
-#                                              count=args.sample_count,
-#                                              interval=args.sample_interval,
-#                                              window=args.sample_window,
-#                                              debug=args.debug),
-#                               nagiosplugin.ScalarContext('difference', '0', ':',
-#                                                          fmt_metric='Measured value is {value} below predicted - sigma'),
-#                               nagiosplugin.ScalarContext('measured', None, None,
-#                                                          fmt_metric='{value} measured bps'),
-#                               nagiosplugin.ScalarContext('predicted', None, None,
-#                                                          fmt_metric='{value} predicted bps'),
-#                               nagiosplugin.ScalarContext('sigma', None, None,
-#                                                          fmt_metric='{value} sigma uncertainty')
-#                              )
 
+    # Add contexts to the Check object
     for metric in predict_query.get_metric_labels():
         for submetric in predict_resource.submetric_list:
             check.add(nagiosplugin.ScalarContext(metric + submetric, None, None))
