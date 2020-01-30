@@ -50,7 +50,7 @@ class MetricPredict(nagiosplugin.Resource):
         self.interval       = interval
         self.window         = window
         self.debug          = debug
-        self.submetric_list = ["avg_smooth", "avg_pred", "avg_sigma"]
+        self.submetric_list = ["avg_smooth", "avg_pred", "avg_sigma", "avg_diff"]
         
     
     def probe(self):
@@ -84,6 +84,14 @@ class MetricPredict(nagiosplugin.Resource):
             
             # Add this to the working tokens
             predict_tokens.append(ds_smooth)
+            
+            # Calculate difference in rrd as well
+            rdef_str = '{},{},-'.format(ds, ds + '_pred')
+            ds_diff = '{}_diff'.format(ds)
+            self.rrd_query.define_cdef(ds_diff, rdef_str)
+            
+            # Add this to the working tokens
+            predict_tokens.append(ds_diff)
             
             # Create a current vdef and print statement for each cdef defined by the prediction definition
             # and the smoothed average (and any difference or sigma coeff calculations)
@@ -127,9 +135,9 @@ class MetricPredict(nagiosplugin.Resource):
             
             # calculate difference- I should probably put this in the rrd query layer to make the code
             # cleaner here.
-            difference = abs(rrd_output_map[metric + "avg_smooth"] - rrd_output_map[metric + "avg_pred"])
-            yield nagiosplugin.Metric(metric + "avg_diff", difference)
-        
+#            difference = abs(rrd_output_map[metric + "avg_smooth"] - rrd_output_map[metric + "avg_pred"])
+#            yield nagiosplugin.Metric(metric + "avg_diff", difference)
+
 @nagiosplugin.guarded
 def main():
     # Come up with a decent default perfdata path that accounts for OMD
@@ -193,7 +201,7 @@ def main():
     for metric in predict_query.get_metric_labels():
         for submetric in predict_resource.submetric_list:
             check.add(nagiosplugin.ScalarContext(metric + submetric, None, None))
-        check.add(nagiosplugin.ScalarContext(metric + "avg_diff", None, None))
+#        check.add(nagiosplugin.ScalarContext(metric + "avg_diff", None, None))
 
     
     check.main(args.debug, args.timeout)
