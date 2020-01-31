@@ -143,14 +143,14 @@ def main():
     # Setup argparse to parse the command line.
     cmdParser = argparse.ArgumentParser(description='check_predicted.py options')
     cmdParser.add_argument('-H ', '--host', dest='host', action='store',
-                           help='invID to query')
+                           help='hostname to query')
     cmdParser.add_argument('--path', dest='path', action='store',
                            default=perfdata_path,
                            help='Path to perfdata directory')
     cmdParser.add_argument('--servicename', dest='service_name', action='store',
                            default='Interface_1', help='service to query')
-    cmdParser.add_argument('--dsname', dest='ds_name', action='store',
-                           default='out', help='specific service metric to query')
+    cmdParser.add_argument('--sm', dest='ds_name', action='store',
+                           default='out', help='specific submetric to query')
     cmdParser.add_argument('-w', '--warn', dest='warn_coeff', action='store',
                            default=1, help='sigma coefficient variation before warn - higher is less sensitive')
     cmdParser.add_argument('-c', '--crit', dest='crit_coeff', action='store',
