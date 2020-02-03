@@ -86,7 +86,7 @@ class MetricPredict(nagiosplugin.Resource):
             predict_tokens.append(ds_smooth)
             
             # Calculate difference in rrd as well
-            rdef_str = '{},{},-'.format(ds, ds + '_pred')
+            rdef_str = '{},{},-,ABS'.format(ds, ds + '_pred')
             ds_diff = '{}_diff'.format(ds)
             self.rrd_query.define_cdef(ds_diff, rdef_str)
             
