@@ -89,7 +89,7 @@ class MetricPredict(nagiosplugin.Resource):
             # NOTE! The difference is this case is abs(predicted - observed) / std_deviation
             # This way the figure can be compared directly to the warning and critical levels
             # Also substitutes zeros for NaNs
-            rdef_str = '{0},{1},-,ABS,{2},/,UN,0,{0},{1},-,ABS,{2},/,IF'.format(ds + '_smooth', ds + '_pred', ds + '_sigma')
+            rdef_str = '{2},0,EQ,0,{0},{1},-,ABS,{2},/,IF'.format(ds_smooth, ds + '_pred', ds + '_sigma')
             ds_diff = '{}_diff'.format(ds)
             self.rrd_query.define_cdef(ds_diff, rdef_str)
             
