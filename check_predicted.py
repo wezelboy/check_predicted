@@ -35,7 +35,7 @@ class MetricPredict(nagiosplugin.Resource):
     by the sigma coefficient (which might also be considered to be a weight of uncertainty), then an alert is thrown.
     '''
     
-    def __init__(self, rrd_query, ds_match, warn_coeff=2, crit_coeff=3, sample_time='now', count=-5, interval=604800, window=1800,debug=0):
+    def __init__(self, rrd_query, ds_match, sample_time='now', count=-5, interval=604800, window=1800,debug=0):
         '''
         __init__ just stores a reference to the rrd_query structure and all of the arguments needed.
         Arguments are described further below in the ArgumentParser definition.
@@ -43,8 +43,6 @@ class MetricPredict(nagiosplugin.Resource):
         
         self.rrd_query      = rrd_query
         self.ds_match       = ds_match
-        self.warn_coeff     = warn_coeff
-        self.crit_coeff     = crit_coeff
         self.sample_time    = sample_time
         self.count          = count
         self.interval       = interval
@@ -119,9 +117,8 @@ class MetricPredict(nagiosplugin.Resource):
             for line in rrd_output:
                 sys.stderr.write('{}\n'.format(line))
         
-        rrd_output_map = {}
-        
         # Parse the output and map it to metrics
+        rrd_output_map = {}
         output_parser = re.compile(r'^curr_ds(.*) = (.*)')
         for line in rrd_output:
             match = output_parser.match(line)
@@ -184,8 +181,6 @@ def main():
     # Initialize the resource
     predict_resource = MetricPredict(predict_query,
                                     ds_match=args.ds_name,
-                                    warn_coeff=args.warn_coeff,
-                                    crit_coeff=args.crit_coeff,
                                     sample_time=args.sample_time,
                                     count=args.sample_count,
                                     interval=args.sample_interval,
@@ -198,7 +193,7 @@ def main():
     # Add contexts to the Check object
     for metric in predict_query.get_metric_labels():
         for submetric in predict_resource.submetric_list:
-            check.add(nagiosplugin.ScalarContext(metric + submetric, None, None))
+            check.add(nagiosplugin.ScalarContext(metric + submetric, args.warn_coeff, args.crit_coeff))
 
     check.main(args.debug, args.timeout)
     
