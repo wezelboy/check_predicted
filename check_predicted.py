@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 # check_predicted.py
+# version 0.6
 # check_predicted.py uses rrdtool's prediction functions to detect unusual behavior.
 # It was originally to be used for interface traffic, but hopefully it will find use in other data sets.
 # Originally written by Patrick Gavin. March 2013
