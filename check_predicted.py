@@ -193,7 +193,12 @@ def main():
     # Add contexts to the Check object
     for metric in predict_query.get_metric_labels():
         for submetric in predict_resource.submetric_list:
-            check.add(nagiosplugin.ScalarContext(metric + submetric, args.warn_coeff, args.crit_coeff))
+            if(re.match('_diff$', submetric)):
+                check.add(nagiosplugin.ScalarContext(metric + submetric, args.warn_coeff, args.crit_coeff))
+            else:
+                if(args.debug):
+                    check.add(nagiosplugin.ScalarContext(metric + submetric, None, None))
+
 
     check.main(args.debug, args.timeout)
     
