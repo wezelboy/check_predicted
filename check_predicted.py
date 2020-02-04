@@ -133,7 +133,7 @@ class MetricPredict(nagiosplugin.Resource):
         # Generally we just output the diffs, but if debug is on we output all metrics
         for metric in self.rrd_query.get_metric_labels():
             for submetric in self.submetric_list:
-                if(re.match(r'_diff$', submetric,re.M)):
+                if(re.search('_diff$', submetric)):
                     yield nagiosplugin.Metric(metric + submetric, rrd_output_map[metric + submetric])
                 else:
                     if(self.debug):
@@ -199,7 +199,7 @@ def main():
     # Add contexts to the Check object
     for metric in predict_query.get_metric_labels():
         for submetric in predict_resource.submetric_list:
-            if(re.match(r'_diff$', submetric, re.M)):
+            if(re.search('_diff$', submetric)):
                 check.add(nagiosplugin.ScalarContext(metric + submetric, args.warn_coeff, args.crit_coeff))
             else:
                 if(args.debug):
