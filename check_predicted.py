@@ -86,7 +86,9 @@ class MetricPredict(nagiosplugin.Resource):
             predict_tokens.append(ds_smooth)
             
             # Calculate difference in rrd as well
-            rdef_str = '{},{},-,ABS'.format(ds, ds + '_pred')
+            # NOTE! The difference is this case is abs(predicted - observed) / std_deviation
+            # This way the figure can be compared directly to the warning and critical levels
+            rdef_str = '{},{},-,ABS,{},DIV'.format(ds + '_smooth', ds + '_pred', ds + '_sigma')
             ds_diff = '{}_diff'.format(ds)
             self.rrd_query.define_cdef(ds_diff, rdef_str)
             
