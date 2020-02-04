@@ -128,10 +128,16 @@ class MetricPredict(nagiosplugin.Resource):
         if(self.debug):
             for metric in rrd_output_map.keys():
                 sys.stderr.write('{} = {}\n'.format(metric, rrd_output_map[metric]))
-        
+
+        # Generate the output metrics
+        # Generally we just output the diffs, but if debug is on we output all metrics
         for metric in self.rrd_query.get_metric_labels():
             for submetric in self.submetric_list:
-                yield nagiosplugin.Metric(metric + submetric, rrd_output_map[metric + submetric])
+                if(re.match('_diff$', submetric)):
+                    yield nagiosplugin.Metric(metric + submetric, rrd_output_map[metric + submetric])
+                else:
+                    if(self.debug):
+                        yield nagiosplugin.Metric(metric + submetric, rrd_output_map[metric + submetric])
 
 @nagiosplugin.guarded
 def main():
