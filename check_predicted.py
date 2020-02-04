@@ -2,16 +2,16 @@
 
 # check_predicted.py
 # check_predicted.py uses rrdtool's prediction functions to detect unusual behavior.
-# It is primarily to be used for interface traffic, but hopefully it will find use in other data sets.
+# It was originally to be used for interface traffic, but hopefully it will find use in other data sets.
 # Originally written by Patrick Gavin. March 2013
-# Retooled for OMD/check-mk 2020
+# Retooled for OMD/check-mk Feb 2020
 #
-# check_predicted utilizes the google nagiosplugin class and also assumes an OMD environment.
+# check_predicted utilizes the nagiosplugin class and also assumes an OMD environment.
 # The --path argument can be used to point to a different rrd file location if necessary.
-# I'm currently in the process of reworking it to run in a check_mk/OMD environment.
-
-# Right now I have the check running in my OMD/check_mk environment. It only returns metrics.
-# It doesn't actually trigger on anomalies in its current state.
+#
+# Right now I have the check running in my OMD/check_mk environment. It will trigger on anomalies depending
+# on how you set the warn and crit options. A setting of 1 means that it will alert if the difference between predicted
+# and actual exceeds the standard deviation. The higher the value, the less sensitive it is.
 
 
 import sys
@@ -33,6 +33,8 @@ class MetricPredict(nagiosplugin.Resource):
     
     If the current measurement differs from the prediction by more than the standard deviation (sigma) multiplied
     by the sigma coefficient (which might also be considered to be a weight of uncertainty), then an alert is thrown.
+    
+    The default settings for MetricPredict are pretty good. 5 sample windows of 30 minutes with a week inbetween.
     '''
     
     def __init__(self, rrd_query, ds_match, sample_time='now', count=-5, interval=604800, window=1800,debug=0):
