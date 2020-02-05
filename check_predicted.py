@@ -142,6 +142,18 @@ class MetricPredict(nagiosplugin.Resource):
                     if(self.debug):
                         yield nagiosplugin.Metric(metric + submetric, rrd_output_map[metric + submetric])
 
+class PredictSummary(nagiosplugin.Summary):
+    '''
+    PredictSummary class provides a summary string for the plugin output
+    '''
+    def __init__(self):
+        pass
+
+    def ok(self, results):
+        return 'All metrics are within expected range'
+
+#    def problem(self, results):
+
 @nagiosplugin.guarded
 def main():
     # Come up with a decent default perfdata path that accounts for OMD
@@ -197,7 +209,7 @@ def main():
                                     debug=args.debug)
     
     # Initialize the nagios plugin Check object
-    check = nagiosplugin.Check(predict_resource)
+    check = nagiosplugin.Check(predict_resource, PredictSummary())
 
     # Add contexts to the Check object
     for metric in predict_query.get_metric_labels():
