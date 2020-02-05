@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # check_predicted.py
-# version 0.6
+# version 0.6.1
 # check_predicted.py uses rrdtool's prediction functions to detect unusual behavior.
 # It was originally to be used for interface traffic, but hopefully it will find use in other data sets.
 # Originally written by Patrick Gavin. March 2013
@@ -89,7 +89,13 @@ class MetricPredict(nagiosplugin.Resource):
             # Calculate difference in rrd as well
             # NOTE! The difference is this case is abs(predicted - observed) / std_deviation
             # This way the figure can be compared directly to the warning and critical levels
-            # Also substitutes zeros for NaNs
+            # If sigma is 0, then the difference will be NaN, so we have to filter those out.
+            # Psuedocode for the RPN in rdef_str is:
+            # if(sigma == 0):
+            #     return 0
+            # else:
+            #     return abs(observed - predicted)/sigma
+            
             rdef_str = '{2},0,EQ,0,{0},{1},-,ABS,{2},/,IF'.format(ds_smooth, ds + '_pred', ds + '_sigma')
             ds_diff = '{}_diff'.format(ds)
             self.rrd_query.define_cdef(ds_diff, rdef_str)
