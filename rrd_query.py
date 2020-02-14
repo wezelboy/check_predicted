@@ -63,7 +63,7 @@ class RRDQuery:
     def __init__(self,
                  invID,                                                             # Inventory ID of host we are querying
                  perfdata_path='/opt/omd/sites/sysmon/var/pnp4nagios/perfdata',     # Path to the pnp4nagios data
-                 service_name='Interface 1',                                        # Name of the service that is being queried
+                 service_name='Interface_1',                                        # Name of the service that is being queried
                  graph_width=12096,                                                 # Width of the graph (in steps)
                  graph_step=60,                                                     # Default time of each graph step (in seconds)
                  out_file='foo',
