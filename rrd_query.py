@@ -28,42 +28,41 @@ class RRDQuery:
     RRDQuery is meant to provide an interface for putting together complex or repetitive rrd queries.
     It currently relies on pnp4nagios xml files for some of the work, but may not in the future.
     Data structures maintained include:
-    file_path -     A path to the rrdfile
     start_time -    The start time for the rrd query
     end_time -      The end time for the rrd query
     command_list -  A list of rrd commands that make up the query
     '''
 
-    def load_XML(self):
-        '''
-        load_XML loads the service XML file and returns the root node of the tree.
-        '''
-        
-        tree = ET.parse(self.xml_path)
-        return tree.getroot()
-    
-    def build_label_dict(self):
-        '''
-        buildDict will create a dict that maps the datastore value to the name or label
-        using the xml file that pnp4nagios automatically creates. It now also extracts the
-        rrdfile as well, since check_mk likes to break up metrics into seperate files.
-        '''
-        
-        # Initialize the dictionary that will be returned
-        return_dict = {}
-        
-        for datasource in self.service_meta.findall('DATASOURCE'):
-            ds_num = datasource.find('DS').text
-            name = datasource.find('NAME').text
-            path = datasource.find('RRDFILE').text
-            return_dict[name] = (path, ds_num)
-            
-        return return_dict
-    
+#    def load_XML(self):
+#        '''
+#        load_XML loads the service XML file and returns the root node of the tree.
+#        '''
+#
+#        tree = ET.parse(self.xml_path)
+#        return tree.getroot()
+
+#    def build_label_dict(self):
+#        '''
+#        buildDict will create a dict that maps the datastore value to the name or label
+#        using the xml file that pnp4nagios automatically creates. It now also extracts the
+#        rrdfile as well, since check_mk likes to break up metrics into seperate files.
+#        '''
+#
+#        # Initialize the dictionary that will be returned
+#        return_dict = {}
+#
+#        for datasource in self.service_meta.findall('DATASOURCE'):
+#            ds_num = datasource.find('DS').text
+#            name = datasource.find('NAME').text
+#            path = datasource.find('RRDFILE').text
+#            return_dict[name] = (path, ds_num)
+#
+#        return return_dict
+
     def __init__(self,
-                 invID,                                                             # Inventory ID of host we are querying
-                 perfdata_path='/opt/omd/sites/sysmon/var/pnp4nagios/perfdata',     # Path to the pnp4nagios data
-                 service_name='Interface_1',                                        # Name of the service that is being queried
+#                 invID,                                                             # Inventory ID of host we are querying
+#                 perfdata_path='/opt/omd/sites/sysmon/var/pnp4nagios/perfdata',     # Path to the pnp4nagios data
+#                 service_name='Interface_1',                                        # Name of the service that is being queried
                  graph_width=12096,                                                 # Width of the graph (in steps)
                  graph_step=60,                                                     # Default time of each graph step (in seconds)
                  out_file='foo',
@@ -77,10 +76,10 @@ class RRDQuery:
         The rest of the rrdquery is put together using various commands, and then the actual query is made with the query command.
         '''
         self.debug          = debug
-        self.xml_path       = '{}/{}/{}.xml'.format(perfdata_path, invID, service_name)
-        self.service_meta   = self.load_XML()
-        self.label_dict     = self.build_label_dict()
-        self.ds_count       = len(self.label_dict) + 1
+#        self.xml_path       = '{}/{}/{}.xml'.format(perfdata_path, invID, service_name)
+#        self.service_meta   = self.load_XML()
+#        self.label_dict     = self.build_label_dict()
+#        self.ds_count       = len(self.label_dict) + 1
         # command_list is the bread and butter of this. It has all of the rrd commands that will finally be run.
         self.command_list   = ['rrdtool',
                                'graph',
@@ -102,21 +101,21 @@ class RRDQuery:
             sys.stderr.write('{}\n'.format(str(self.label_dict)))
 
 
-    def get_metric_labels(self):
-        '''
-        get_metric_lables returns a list of all of the metrics associated with a service.
-        '''
-        return self.label_dict.keys()
-        
-    def define_dataset(self, metric_name=None, consol_funct='avg'):
+#    def get_metric_labels(self):
+#        '''
+#        get_metric_lables returns a list of all of the metrics associated with a service.
+#        '''
+#        return self.label_dict.keys()
+
+    def define_dataset(self, path, ds_num, metric_name=None, consol_funct='avg'):
         '''
         define_dataset will generate rrd DEF commands and add them to the rrd query command list.
         If name is specified, it will only define datasets whose label (in label_dict) matches name.
         The function will return a list of tokens that have been defined as datasets.
         '''
         
-        (path, ds_num) = self.label_dict[metric_name]
-        
+#        (path, ds_num) = self.label_dict[metric_name]
+
         if self.debug:
             sys.stderr.write('Metric {} in {}\n'.format(metric_name, path))
         
@@ -143,7 +142,7 @@ class RRDQuery:
     
     def define_cdef(self, name, rdef):
         '''
-        define_cdef will generate an rrd VDEF command and add it to the query command list.
+        define_cdef will generate an rrd CDEF command and add it to the query command list.
         '''
         
         cmd_str = 'CDEF:{}={}'.format(name, rdef)
