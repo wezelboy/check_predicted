@@ -11,7 +11,7 @@
 
 import sys
 import rrdtool
-import xml.etree.ElementTree as ET
+#import xml.etree.ElementTree as ET
 import re
 import subprocess
 

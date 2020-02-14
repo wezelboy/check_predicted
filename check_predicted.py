@@ -26,6 +26,15 @@ import time
 import rrd_query
 import datetime
 import shelve
+import xml.etree.ElementTree as ET
+
+def load_XML(xml_path):
+    '''
+    load_XML loads the service XML file and returns the root node of the tree.
+    '''
+
+    tree = ET.parse(xml_path)
+    return tree.getroot()
 
 class MetricPredict(nagiosplugin.Resource):
     '''
@@ -38,7 +47,7 @@ class MetricPredict(nagiosplugin.Resource):
     The default settings for MetricPredict are pretty good. 5 sample windows of 30 minutes with a week inbetween.
     '''
     
-    def __init__(self, rrd_query, ds_match, sample_time='now', count=-5, interval=604800, window=1800,debug=0):
+    def __init__(self, rrd_query, invID, perfdata_path, service_name, ds_match, sample_time='now', count=-5, interval=604800, window=1800,debug=0):
         '''
         __init__ just stores a reference to the rrd_query structure and all of the arguments needed.
         Arguments are described further below in the ArgumentParser definition.
@@ -52,6 +61,27 @@ class MetricPredict(nagiosplugin.Resource):
         self.window         = window
         self.debug          = debug
         self.submetric_list = ["avg_smooth", "avg_pred", "avg_sigma", "avg_diff"]
+        self.service_meta   = load_XML('{}/{}/{}.xml'.format(perfdata_path, invID, service_name))
+        self.label_dict     = self.build_label_dict()
+    
+    
+    def build_label_dict(self):
+        '''
+        buildDict will create a dict that maps the datastore value to the name or label
+        using the xml file that pnp4nagios automatically creates. It now also extracts the
+        rrdfile as well, since check_mk likes to break up metrics into seperate files.
+        '''
+
+        # Initialize the dictionary that will be returned
+        return_dict = {}
+
+        for datasource in self.service_meta.findall('DATASOURCE'):
+            ds_num = datasource.find('DS').text
+            name = datasource.find('NAME').text
+            path = datasource.find('RRDFILE').text
+            return_dict[name] = (path, ds_num)
+
+        return return_dict
         
     
     def probe(self):
@@ -62,7 +92,7 @@ class MetricPredict(nagiosplugin.Resource):
         so I built my own rrd_query mechanism. It's ugly but gets the job done.
         '''
         
-        for metric in self.rrd_query.get_metric_labels():
+        for metric in self.label_dict.keys():
         
             # Define rrd dataset for the metric
             ds = self.rrd_query.define_dataset(metric)
@@ -140,7 +170,7 @@ class MetricPredict(nagiosplugin.Resource):
 
         # Generate the output metrics
         # Generally we just output the diffs, but if debug is on we output all metrics
-        for metric in self.rrd_query.get_metric_labels():
+        for metric in self.label_dict.keys():
             for submetric in self.submetric_list:
                 if(re.search('_diff$', submetric)):
                     yield nagiosplugin.Metric(metric + submetric, rrd_output_map[metric + submetric])
@@ -198,27 +228,34 @@ def main():
     
     # Initialize the rrd query
     # I know start_time is a kludge. Will fix.
-    predict_query = rrd_query.RRDQuery(invID=args.host,
-                                       perfdata_path=args.path,
-                                       service_name=args.service_name,
-                                       out_file='/tmp/{}'.format(args.host),
+
+#invID=args.host,
+#    perfdata_path=args.path,
+#        service_name=args.service_name,
+#
+
+    predict_query = rrd_query.RRDQuery(out_file='/tmp/{}'.format(args.host),
                                        start_time='end-6w',
-                                       end_time=args.sample_time, debug=args.debug)
+                                       end_time=args.sample_time,
+                                       debug=args.debug)
     
     # Initialize the resource
     predict_resource = MetricPredict(predict_query,
-                                    ds_match=args.ds_name,
-                                    sample_time=args.sample_time,
-                                    count=args.sample_count,
-                                    interval=args.sample_interval,
-                                    window=args.sample_window,
-                                    debug=args.debug)
+                                     invID=args.host,
+                                     perfdata_path=args.path,
+                                     service_name=args.service_name,
+                                     ds_match=args.ds_name,
+                                     sample_time=args.sample_time,
+                                     count=args.sample_count,
+                                     interval=args.sample_interval,
+                                     window=args.sample_window,
+                                     debug=args.debug)
     
     # Initialize the nagios plugin Check object
     check = nagiosplugin.Check(predict_resource, PredictSummary())
 
     # Add contexts to the Check object
-    for metric in predict_query.get_metric_labels():
+    for metric in predict_resource.label_dict.keys():
         for submetric in predict_resource.submetric_list:
             if(re.search('_diff$', submetric)):
                 check.add(nagiosplugin.ScalarContext(metric + submetric, args.warn_coeff, args.crit_coeff))
