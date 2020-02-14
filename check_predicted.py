@@ -93,9 +93,11 @@ class MetricPredict(nagiosplugin.Resource):
         '''
         
         for metric in self.label_dict.keys():
-        
+            # I know there's a better way to do this.
+            (path, ds_num) = self.label_dict[metric]
+            
             # Define rrd dataset for the metric
-            ds = self.rrd_query.define_dataset(metric)
+            ds = self.rrd_query.define_dataset(path, ds_num, metric_name=metric)
         
             # Define the prediction rrd stuff  (self, cdef, step=604800, step_count=-5, window=1800):
             predict_tokens = self.rrd_query.define_prediction(cdef=ds,
