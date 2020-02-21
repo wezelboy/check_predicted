@@ -48,24 +48,35 @@ class RRDQuery:
         '''
         self.debug          = debug
         # command_list is the bread and butter of this. It has all of the rrd commands that will finally be run.
-        self.command_list   = ['rrdtool',
-                               'graph',
-                               '--width',
-                               str(graph_width),
-                               '--step', str(graph_step),
-                               out_file,
-                               '--start',
-                               '\'{}\''.format(start_time),
-                               '--end',
-                               '\'{}\''.format(end_time)]
+        self.header         = 'rrdtool graph --width {} --step {} {} --start \'{}\' --end \'{}\''.format(str(graph_width),
+                                                                                                         str(graph_step),
+                                                                                                         out_file,
+                                                                                                         start_time,
+                                                                                                         end_time)
+#        self.command_list   = ['rrdtool',
+#                               'graph',
+#                               '--width',
+#                               str(graph_width),
+#                               '--step',
+#                               str(graph_step),
+#                               out_file,
+#                               '--start',
+#                               '\'{}\''.format(start_time),
+#                               '--end',
+#                               '\'{}\''.format(end_time)]
+        self.command_list   = []
         self.tokens         = {}
         self.print_format   = print_format
-        
-        
-        if self.debug:
-            sys.stderr.write('ds count = {}\n'.format(self.ds_count))
-            sys.stderr.write('label dict:\n')
-            sys.stderr.write('{}\n'.format(str(self.label_dict)))
+    
+#    def change_header(self,
+#                      graph_width=12096,                                                 # Width of the graph (in steps)
+#                      graph_step=60,                                                     # Default time of each graph step (in seconds)
+#                      out_file='foo',
+#                      start_time='end-6w',                                               # Actual start time to graph
+#                      end_time='now',                                                    # Actual end time to graph
+#                      print_format='%6.2lf',
+#                      debug=0,
+#                      ):
 
     def define_dataset(self, path, ds_num, metric_name=None, consol_funct='avg'):
         '''
@@ -175,17 +186,24 @@ class RRDQuery:
         
         return tokens
         
-    def run_query(self):
+    def run_query(self, header=None):
         '''
         run_query puts together the rrd query and then runs it in a subprocess
+        Optional header parameter allows a custom header to be used in cases
+        where the same query gets run over and over with different parameters
+        (i.e map2sets.py)
         '''
+        if header:
+            rrd_header = header
+        else:
+            rrd_header = self.header
         
         if self.debug:
             for item in self.command_list:
                 sys.stderr.write('{}\n'.format(item))
                 
         # Create a single command string
-        rrd_tool_cmd = ' '.join(self.command_list)
+        rrd_tool_cmd = rrd_header + ' '.join(self.command_list)
         
         if self.debug:
             sys.stderr.write('{}'.format(rrd_tool_cmd))
