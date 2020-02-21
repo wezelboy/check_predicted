@@ -53,30 +53,9 @@ class RRDQuery:
                                                                                                          out_file,
                                                                                                          start_time,
                                                                                                          end_time)
-#        self.command_list   = ['rrdtool',
-#                               'graph',
-#                               '--width',
-#                               str(graph_width),
-#                               '--step',
-#                               str(graph_step),
-#                               out_file,
-#                               '--start',
-#                               '\'{}\''.format(start_time),
-#                               '--end',
-#                               '\'{}\''.format(end_time)]
         self.command_list   = []
         self.tokens         = {}
         self.print_format   = print_format
-    
-#    def change_header(self,
-#                      graph_width=12096,                                                 # Width of the graph (in steps)
-#                      graph_step=60,                                                     # Default time of each graph step (in seconds)
-#                      out_file='foo',
-#                      start_time='end-6w',                                               # Actual start time to graph
-#                      end_time='now',                                                    # Actual end time to graph
-#                      print_format='%6.2lf',
-#                      debug=0,
-#                      ):
 
     def define_dataset(self, path, ds_num, metric_name=None, consol_funct='avg'):
         '''
