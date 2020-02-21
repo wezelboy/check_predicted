@@ -203,7 +203,7 @@ class RRDQuery:
                 sys.stderr.write('{}\n'.format(item))
                 
         # Create a single command string
-        rrd_tool_cmd = rrd_header + ' '.join(self.command_list)
+        rrd_tool_cmd = rrd_header + ' ' + ' '.join(self.command_list)
         
         if self.debug:
             sys.stderr.write('{}'.format(rrd_tool_cmd))
