@@ -11,7 +11,6 @@
 
 import sys
 import rrdtool
-#import xml.etree.ElementTree as ET
 import re
 import subprocess
 
@@ -57,7 +56,7 @@ class RRDQuery:
         self.tokens         = {}
         self.print_format   = print_format
 
-    def define_dataset(self, path, ds_num, metric_name=None, consol_funct='avg'):
+    def define_dataset(self, path, ds_num, metric_name, consol_funct='avg'):
         '''
         define_dataset will generate rrd DEF commands and add them to the rrd query command list.
         If name is specified, it will only define datasets whose label (in label_dict) matches name.
