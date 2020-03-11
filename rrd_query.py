@@ -85,7 +85,6 @@ class RRDQuery:
             sys.stderr.write('{}\n'.format(cmd_str))
         
         return name
-        
     
     def define_cdef(self, name, rdef):
         '''
@@ -121,7 +120,6 @@ class RRDQuery:
         
         The name of the aggregate is returned
         '''
-        
         # Figure out the RPN rdef
         # Example output would be 'ds1,ds2,ds3,+,+' (= ds3 + ds2 + ds1)
         rdef_str = ''
@@ -140,7 +138,15 @@ class RRDQuery:
         self.define_cdef(name, rdef_str)
         
         return name
-            
+
+    def define_smooth(self, name, window=1800):
+        '''
+        define_smooth creates a cdef that smooths any data drops and gets rid of NaNs
+        I think it might also help temporal offsets in pattern matching
+        '''
+        rdef_str = '{},{},TRENDNAN'.format(name, (window)/2)
+        ds_smooth = '{}_smooth'.format(name)
+        return self.define_cdef(ds_smooth, rdef_str)
         
     def define_prediction(self, cdef, step=604800, step_count=-5, window=1800):
         '''
