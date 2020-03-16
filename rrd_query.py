@@ -183,6 +183,7 @@ class RRDQuery:
             rrd_header = self.header
         
         if self.debug:
+            sys.stderr.write('{}\n'.format(rrd_header))
             for item in self.command_list:
                 sys.stderr.write('{}\n'.format(item))
                 
