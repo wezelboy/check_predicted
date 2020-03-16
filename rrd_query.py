@@ -174,7 +174,7 @@ class RRDQuery:
         '''
         merge_queries will extend the command list of the query with the command list of the other_query
         '''
-        self.command_list.extend(self, other_query.command_list)
+        self.command_list.extend(other_query.command_list)
         
     def run_query(self, header=None):
         '''
