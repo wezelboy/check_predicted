@@ -169,6 +169,12 @@ class RRDQuery:
         tokens.append(self.define_cdef(sig_name, '{},PREDICTSIGMA'.format(basis_str,cdef)))
         
         return tokens
+    
+    def merge_queries(self, other_query):
+        '''
+        merge_queries will extend the command list of the query with the command list of the other_query
+        '''
+        self.command_list.extend(self, other_query.command_list)
         
     def run_query(self, header=None):
         '''
