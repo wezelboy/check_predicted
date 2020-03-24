@@ -103,7 +103,7 @@ class RRDQuery:
         rrd_print will generate an rrd print command and append it to the query command list
         '''
         if format_arg:
-            format_str = format_arg
+            format_str = '{} = {}'.format(vdef, format_arg)
         else:
             format_str = '{} = {}'.format(vdef, self.print_format)
             
