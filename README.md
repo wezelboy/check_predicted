@@ -1,21 +1,28 @@
 # check_predicted.py
-# version 0.6
+# version 0.7
 Nagios plugin that analyzes RRD files for real-time anomaly detection.
 
-I'm currently reworking to run under check_mk/OMD in a more general case
-since people seem to be interested in that sort of thing.
+This plugin uses the nagios-plugin python module.
 
-February 2020- check will run in omd environment. It will now alert on anomalies.
+This plugin is meant to run under check_mk/OMD in a more general case since people
+seem to be interested in that sort of thing.
+
+check_predicted.py uses the rrdtool PREDICTSIGMA tool to generate predictions of all
+the performance metrics of a service. It then compares the predicted value to the
+actual current value. The main output is the "difference/sigma ratio", which is the
+difference between the actual and predicted value divided by the standard deviation.
+
+The higher the d/s ratio, the more anomalous the actual value. The nagios warn and
+crit values are compared to the d/s ratio.
+
 By default it will only return the difference/sigma ratio, but in debug mode it will
 return all metrics.
 
-Check should be run as OMD site user.
+Check should be run as OMD site user. In check_mk it is meant to be run as an active
+check. By default, there should be about 5 weeks of data to work with.
 
 A simple example would be:
 check_predicted.py --host $HOST --servicename Interface_1
-
-check_predicted.php is a crude pnp4nagios template for graphing.
-It is not updated.
 
 Note: I keep my stuff in a private repo elsewhere. But I will make
 occasional updates here.
