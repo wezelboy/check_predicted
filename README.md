@@ -5,7 +5,7 @@ Nagios plugin that analyzes RRD files for real-time anomaly detection.
 This plugin uses the nagios-plugin python module. You will need to install that.
 
 This plugin is meant to run under check_mk/OMD in a more general case. To install,
-put both python files in /opt/omd/sites/<sitename>/local/lib/nagios/plugins
+put both python files in /opt/omd/sites/$sitename/local/lib/nagios/plugins
 
 check_predicted.py uses the rrdtool PREDICTSIGMA tool to generate predictions of all
 the performance metrics of a service. It then compares the predicted value to the
